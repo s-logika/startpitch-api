@@ -12,8 +12,11 @@ MATCHES: dict[int, dict] = {}
 @matches_bp.post("/thesis")
 @jwt_required()
 def upsert_thesis():
-    data = request.get_json() or {}
-    investor_id = int(data.get("investor_id", len(THESES) + 1))
+    data = request.get_json(silent=True) or {}
+    try:
+        investor_id = int(data.get("investor_id", len(THESES) + 1))
+    except (TypeError, ValueError):
+        return jsonify({"error": "investor_id must be an integer"}), 400
     data["investor_id"] = investor_id
     THESES[investor_id] = data
     return jsonify(data), 201
