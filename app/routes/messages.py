@@ -8,7 +8,7 @@ MESSAGES: list[dict] = []
 @messages_bp.post("")
 @jwt_required()
 def create_message():
-    data = request.get_json() or {}
+    data = request.get_json(silent=True) or {}
     data["id"] = len(MESSAGES) + 1
     MESSAGES.append(data)
     return jsonify(data), 201
