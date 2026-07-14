@@ -8,7 +8,7 @@ BOOKINGS: dict[int, dict] = {}
 @bookings_bp.post("")
 @jwt_required()
 def create_booking():
-    data = request.get_json() or {}
+    data = request.get_json(silent=True) or {}
     booking_id = len(BOOKINGS) + 1
     data["id"] = booking_id
     BOOKINGS[booking_id] = data
@@ -34,7 +34,7 @@ def update_booking(booking_id: int):
     booking = BOOKINGS.get(booking_id)
     if not booking:
         return jsonify({"error": "Booking not found"}), 404
-    booking.update(request.get_json() or {})
+    booking.update(request.get_json(silent=True) or {})
     return jsonify(booking), 200
 
 
@@ -44,5 +44,5 @@ def booking_feedback(booking_id: int):
     booking = BOOKINGS.get(booking_id)
     if not booking:
         return jsonify({"error": "Booking not found"}), 404
-    booking["feedback"] = request.get_json() or {}
+    booking["feedback"] = request.get_json(silent=True) or {}
     return jsonify({"updated": True, "booking": booking}), 201
