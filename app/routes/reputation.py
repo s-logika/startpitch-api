@@ -15,7 +15,7 @@ def get_reputation(user_id: int):
 @reputation_bp.post("/<int:user_id>/rate")
 @jwt_required()
 def rate_user(user_id: int):
-    data = request.get_json() or {}
+    data = request.get_json(silent=True) or {}
     item = REPUTATION.setdefault(user_id, {"user_id": user_id, "score": 0, "ratings": []})
     item["ratings"].append(data.get("rating", 0))
     if item["ratings"]:
