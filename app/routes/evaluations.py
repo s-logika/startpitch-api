@@ -1,7 +1,9 @@
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required
 
-from app.services.ai_service import EVALUATION_JOBS, queue_evaluation
+from app.extensions import db
+from app.models.evaluation import EvaluationJob
+from app.services.ai_service import queue_evaluation
 
 evaluations_bp = Blueprint("evaluations", __name__, url_prefix="/api/v1/evaluations")
 
@@ -17,30 +19,28 @@ def create_evaluation():
 @evaluations_bp.get("/jobs/<int:job_id>")
 @jwt_required()
 def get_job(job_id: int):
-    job = EVALUATION_JOBS.get(job_id)
+    job = db.session.get(EvaluationJob, job_id)
     if not job:
         return jsonify({"error": "Job not found"}), 404
-    return jsonify(job), 200
+    return jsonify(job.to_dict()), 200
 
 
 @evaluations_bp.get("/<int:pitch_version_id>")
 @jwt_required()
 def get_evaluation(pitch_version_id: int):
-    result = next(
-        (job for job in EVALUATION_JOBS.values() if job.get("pitch_version_id") == pitch_version_id and job.get("status") == "done"),
-        None,
-    )
-    if not result:
+    job = EvaluationJob.query.filter_by(pitch_version_id=pitch_version_id, status="done").first()
+    if not job:
         return jsonify({"error": "Evaluation not ready"}), 404
-    return jsonify(result), 200
+    return jsonify(job.to_dict()), 200
 
 
 @evaluations_bp.post("/<int:evaluation_id>/override")
 @jwt_required()
 def override_evaluation(evaluation_id: int):
-    job = EVALUATION_JOBS.get(evaluation_id)
+    job = db.session.get(EvaluationJob, evaluation_id)
     if not job:
         return jsonify({"error": "Evaluation not found"}), 404
     data = request.get_json(silent=True) or {}
-    job["override"] = data
-    return jsonify({"updated": True, "evaluation": job}), 200
+    job.data = {**(job.data or {}), "override": data}
+    db.session.commit()
+    return jsonify({"updated": True, "evaluation": job.to_dict()}), 200
