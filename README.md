@@ -62,9 +62,9 @@ Endpoints under `/api/v1/admin` additionally require the JWT's `role` claim to b
 
 ## Health check
 
-| Method | Endpoint | Description |
-|---|---|---|
-| GET | `/health` | Liveness check, returns `{"status": "ok"}` |
+| Method | Endpoint | Description                                |
+|--------|----------|--------------------------------------------|
+| GET    | `/health`| Liveness check, returns `{"status": "ok"}` |
 
 ## API Endpoints
 
