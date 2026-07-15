@@ -1,9 +1,11 @@
-from dataclasses import dataclass
+from app.extensions import db
 
 
-@dataclass
-class Startup:
-    id: int
-    name: str
-    sector: str
-    stage: str
+class Startup(db.Model):
+    __tablename__ = "startups"
+
+    id = db.Column(db.Integer, primary_key=True)
+    data = db.Column(db.JSON, nullable=False, default=dict)
+
+    def to_dict(self) -> dict:
+        return {**(self.data or {}), "id": self.id}
