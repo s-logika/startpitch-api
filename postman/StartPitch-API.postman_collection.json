@@ -1,0 +1,2047 @@
+{
+  "info": {
+    "_postman_id": "e1d1dcab-a178-472f-9add-34fdd3e46610",
+    "name": "StartPitch API",
+    "description": "Flask backend API for StartPitch \u2014 auth, startups, pitches, AI evaluations, investor matching, mentor bookings, deal rooms, messaging, notifications and admin.\n\nHow to run this collection end-to-end:\n1. Run every request in **Auth** top to bottom first (Register Founder/Investor/Admin, then Login (Founder) and Login (Admin)). This populates {{access_token}}, {{admin_access_token}}, {{user_id}}, {{investor_user_id}} and {{admin_user_id}} collection variables automatically via each request's Tests script.\n2. All other requests (except Admin folder) use {{access_token}} automatically via collection-level Bearer auth.\n3. The Admin folder uses {{admin_access_token}} automatically via folder-level auth.\n4. Create-type requests (Create Startup, Create Pitch, Add Pitch Version, Queue Evaluation, Recompute Matches, Create Booking, Create Deal Room, Add Document) save their new resource id into the matching collection variable, so downstream requests that reference {{startup_id}}, {{pitch_id}}, etc. work without manual edits.\n5. Set {{base_url}} (Collection variables tab) to wherever the API is running, e.g. http://127.0.0.1:5000 for `python run.py`.\n\nRequires the DB-backed branch of this API (Flask-SQLAlchemy + MySQL) to be running with migrations applied (`flask db upgrade`).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{access_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:5000",
+      "type": "string"
+    },
+    {
+      "key": "access_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refresh_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "admin_access_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "admin_refresh_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "user_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "investor_user_id",
+      "value": "2",
+      "type": "string"
+    },
+    {
+      "key": "admin_user_id",
+      "value": "3",
+      "type": "string"
+    },
+    {
+      "key": "startup_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "pitch_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "version_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "job_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "evaluation_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "match_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "mentor_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "booking_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "room_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "doc_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "notification_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "content_id",
+      "value": "1",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "health"
+              ]
+            },
+            "description": "Liveness check.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register (Founder)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/register",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "register"
+              ]
+            },
+            "description": "Registers a founder account. Saves the returned id as {{user_id}}.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"founder@startpitch.dev\",\n  \"password\": \"pw123\",\n  \"role\": \"founder\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    pm.collectionVariables.set(\"user_id\", pm.response.json().id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Register (Investor)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/register",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "register"
+              ]
+            },
+            "description": "Registers an investor account, used for thesis/matching endpoints. Saves id as {{investor_user_id}}.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"investor@startpitch.dev\",\n  \"password\": \"pw123\",\n  \"role\": \"investor\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    pm.collectionVariables.set(\"investor_user_id\", pm.response.json().id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Register (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/register",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "register"
+              ]
+            },
+            "description": "Registers an admin account. Saves id as {{admin_user_id}}. The 'role': 'admin' claim is what unlocks the Admin folder.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@startpitch.dev\",\n  \"password\": \"pw123\",\n  \"role\": \"admin\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    pm.collectionVariables.set(\"admin_user_id\", pm.response.json().id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login (Founder)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Logs in as the founder account and stores {{access_token}} / {{refresh_token}} for every other request in the collection.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"founder@startpitch.dev\",\n  \"password\": \"pw123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const data = pm.response.json();",
+                  "    pm.collectionVariables.set(\"access_token\", data.access_token);",
+                  "    pm.collectionVariables.set(\"refresh_token\", data.refresh_token);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Logs in as the admin account and stores {{admin_access_token}} used by the Admin folder.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@startpitch.dev\",\n  \"password\": \"pw123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const data = pm.response.json();",
+                  "    pm.collectionVariables.set(\"admin_access_token\", data.access_token);",
+                  "    pm.collectionVariables.set(\"admin_refresh_token\", data.refresh_token);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "OAuth Google (stub)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/oauth/google",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "oauth",
+                "google"
+              ]
+            },
+            "description": "Stub endpoint, no body required.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "OAuth LinkedIn (stub)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/oauth/linkedin",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "oauth",
+                "linkedin"
+              ]
+            },
+            "description": "Stub endpoint, no body required.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/refresh",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "refresh"
+              ]
+            },
+            "description": "Send the REFRESH token (not access token) as the Bearer token. Rotates {{access_token}} / {{refresh_token}}.",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{refresh_token}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const data = pm.response.json();",
+                  "    pm.collectionVariables.set(\"access_token\", data.access_token);",
+                  "    pm.collectionVariables.set(\"refresh_token\", data.refresh_token);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Get Current User",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/users/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "users",
+                "me"
+              ]
+            },
+            "description": "Returns the authenticated user (from the access token)."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Current User Profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/users/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "users",
+                "me"
+              ]
+            },
+            "description": "Merges the given fields into the user's profile.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Bob\",\n  \"bio\": \"Serial founder\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Profile Completeness",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/users/{{user_id}}/profile-completeness",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "users",
+                "{{user_id}}",
+                "profile-completeness"
+              ]
+            },
+            "description": "Completeness score (0-100) based on name/bio/role fields."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Startups",
+      "item": [
+        {
+          "name": "Create Startup",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/startups",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "startups"
+              ]
+            },
+            "description": "Creates a startup. Saves the returned id as {{startup_id}}.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Acme\",\n  \"sector\": \"fintech\",\n  \"stage\": \"seed\",\n  \"geography\": \"US\",\n  \"check_size\": \"small\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    pm.collectionVariables.set(\"startup_id\", pm.response.json().id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Startup",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/startups/{{startup_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "startups",
+                "{{startup_id}}"
+              ]
+            },
+            "description": "Fetch a startup by id."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Startup",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/startups/{{startup_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "startups",
+                "{{startup_id}}"
+              ]
+            },
+            "description": "Partially updates a startup.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"stage\": \"series-a\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Pitches",
+      "item": [
+        {
+          "name": "Create Pitch",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/pitches",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "pitches"
+              ]
+            },
+            "description": "Creates a pitch under a startup. Saves the returned id as {{pitch_id}}.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Acme Pitch\",\n  \"summary\": \"sum\",\n  \"startup_id\": \"{{startup_id}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    pm.collectionVariables.set(\"pitch_id\", pm.response.json().id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List Pitches",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/pitches?startup_id={{startup_id}}&visibility=private",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "pitches"
+              ],
+              "query": [
+                {
+                  "key": "startup_id",
+                  "value": "{{startup_id}}",
+                  "disabled": true
+                },
+                {
+                  "key": "visibility",
+                  "value": "private",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Optional filters: startup_id, visibility."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Pitch",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/pitches/{{pitch_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "pitches",
+                "{{pitch_id}}"
+              ]
+            },
+            "description": "Fetch a pitch by id."
+          },
+          "response": []
+        },
+        {
+          "name": "Add Pitch Version",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/pitches/{{pitch_id}}/versions",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "pitches",
+                "{{pitch_id}}",
+                "versions"
+              ]
+            },
+            "description": "Adds a new version to a pitch. Saves the returned id as {{version_id}}.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content_url\": \"https://storage.local/deck-v2.pdf\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    pm.collectionVariables.set(\"version_id\", pm.response.json().id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List Pitch Versions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/pitches/{{pitch_id}}/versions",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "pitches",
+                "{{pitch_id}}",
+                "versions"
+              ]
+            },
+            "description": "List all versions of a pitch."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Pitch Version",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/pitches/{{pitch_id}}/versions/{{version_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "pitches",
+                "{{pitch_id}}",
+                "versions",
+                "{{version_id}}"
+              ]
+            },
+            "description": "Fetch one version by id."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Pitch Version Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/pitches/{{pitch_id}}/versions/{{version_id}}/status",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "pitches",
+                "{{pitch_id}}",
+                "versions",
+                "{{version_id}}",
+                "status"
+              ]
+            },
+            "description": "Returns just the processing status of a version."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Pitch Score History",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/pitches/{{pitch_id}}/score-history",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "pitches",
+                "{{pitch_id}}",
+                "score-history"
+              ]
+            },
+            "description": "Score history across all versions of a pitch."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Evaluations",
+      "item": [
+        {
+          "name": "Queue Evaluation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/evaluations",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "evaluations"
+              ]
+            },
+            "description": "Queues an async AI evaluation job for a pitch version. Saves the returned id as {{job_id}} / {{evaluation_id}}.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pitch_version_id\": \"{{version_id}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 202) {",
+                  "    const data = pm.response.json();",
+                  "    pm.collectionVariables.set(\"job_id\", data.id);",
+                  "    pm.collectionVariables.set(\"evaluation_id\", data.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Evaluation Job",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/evaluations/jobs/{{job_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "evaluations",
+                "jobs",
+                "{{job_id}}"
+              ]
+            },
+            "description": "Poll job status. Wait a couple seconds after queueing for status to flip to 'done'."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Evaluation By Pitch Version",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/evaluations/{{version_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "evaluations",
+                "{{version_id}}"
+              ]
+            },
+            "description": "Returns the completed evaluation for a pitch version. 404 until the job is done."
+          },
+          "response": []
+        },
+        {
+          "name": "Override Evaluation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/evaluations/{{evaluation_id}}/override",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "evaluations",
+                "{{evaluation_id}}",
+                "override"
+              ]
+            },
+            "description": "Manually overrides an evaluation's result.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"overall\": 85,\n  \"reason\": \"Reviewer adjusted after live Q&A\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Matching",
+      "item": [
+        {
+          "name": "Upsert Investor Thesis",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/thesis",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "thesis"
+              ]
+            },
+            "description": "Creates/updates an investor's thesis. Uses {{investor_user_id}} from the Investor registration as investor_id.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"investor_id\": \"{{investor_user_id}}\",\n  \"sector\": \"fintech\",\n  \"stage\": \"seed\",\n  \"geography\": \"US\",\n  \"check_size\": \"small\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Investor Thesis",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/thesis/{{investor_user_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "thesis",
+                "{{investor_user_id}}"
+              ]
+            },
+            "description": "Fetch an investor's thesis by id."
+          },
+          "response": []
+        },
+        {
+          "name": "Recompute Matches",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/matches/recompute",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "matches",
+                "recompute"
+              ]
+            },
+            "description": "Scores every startup against every stored thesis. Saves the first match id as {{match_id}}."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const arr = pm.response.json();",
+                  "    if (arr.length > 0) {",
+                  "        pm.collectionVariables.set(\"match_id\", arr[0].id);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List Matches For Investor",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/matches/for-investor/{{investor_user_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "matches",
+                "for-investor",
+                "{{investor_user_id}}"
+              ]
+            },
+            "description": "All matches for a given investor."
+          },
+          "response": []
+        },
+        {
+          "name": "List Matches For Startup",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/matches/for-startup/{{startup_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "matches",
+                "for-startup",
+                "{{startup_id}}"
+              ]
+            },
+            "description": "All matches for a given startup."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Match Rationale",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/matches/{{match_id}}/rationale",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "matches",
+                "{{match_id}}",
+                "rationale"
+              ]
+            },
+            "description": "Score breakdown for a specific match."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Reputation",
+      "item": [
+        {
+          "name": "Get Reputation",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/reputation/{{user_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reputation",
+                "{{user_id}}"
+              ]
+            },
+            "description": "Returns a user's aggregate reputation score and raw ratings."
+          },
+          "response": []
+        },
+        {
+          "name": "Rate User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/reputation/{{user_id}}/rate",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reputation",
+                "{{user_id}}",
+                "rate"
+              ]
+            },
+            "description": "Submits a rating (1-5) for a user.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Badges",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/reputation/{{user_id}}/badges",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "reputation",
+                "{{user_id}}",
+                "badges"
+              ]
+            },
+            "description": "Returns earned badges. 'trusted' once average score >= 4, else 'new'."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Mentors",
+      "item": [
+        {
+          "name": "List Mentors",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/mentors?expertise=growth&availability=weekdays",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "mentors"
+              ],
+              "query": [
+                {
+                  "key": "expertise",
+                  "value": "growth",
+                  "disabled": true
+                },
+                {
+                  "key": "availability",
+                  "value": "weekdays",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Optional filters: expertise, availability. NOTE: there is no POST /mentors endpoint in this API, so this list is empty until mentor rows are seeded directly in the database."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Mentor",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/mentors/{{mentor_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "mentors",
+                "{{mentor_id}}"
+              ]
+            },
+            "description": "Fetch a mentor by id. Will 404 unless a mentor with this id was seeded directly in the database."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Bookings",
+      "item": [
+        {
+          "name": "Create Booking",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/bookings",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "bookings"
+              ]
+            },
+            "description": "Creates a mentor session booking. Saves the returned id as {{booking_id}}.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mentor_id\": \"{{mentor_id}}\",\n  \"user_id\": \"{{user_id}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    pm.collectionVariables.set(\"booking_id\", pm.response.json().id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List Bookings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/bookings?user_id={{user_id}}&role=founder",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "bookings"
+              ],
+              "query": [
+                {
+                  "key": "user_id",
+                  "value": "{{user_id}}",
+                  "disabled": true
+                },
+                {
+                  "key": "role",
+                  "value": "founder",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Optional filters: user_id, role."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Booking",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/bookings/{{booking_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "bookings",
+                "{{booking_id}}"
+              ]
+            },
+            "description": "Updates a booking, e.g. status transitions.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"confirmed\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Submit Booking Feedback",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/bookings/{{booking_id}}/feedback",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "bookings",
+                "{{booking_id}}",
+                "feedback"
+              ]
+            },
+            "description": "Submits feedback for a completed booking.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 5,\n  \"comment\": \"Great session\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Deal Rooms",
+      "item": [
+        {
+          "name": "Create Deal Room",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/deal-rooms",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "deal-rooms"
+              ]
+            },
+            "description": "Creates a deal room for a startup. Saves the returned id as {{room_id}}.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"startup_id\": \"{{startup_id}}\",\n  \"nda_required\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    pm.collectionVariables.set(\"room_id\", pm.response.json().id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Deal Room",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/deal-rooms/{{room_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "deal-rooms",
+                "{{room_id}}"
+              ]
+            },
+            "description": "Fetch a deal room by id."
+          },
+          "response": []
+        },
+        {
+          "name": "Sign NDA",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/deal-rooms/{{room_id}}/nda/sign",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "deal-rooms",
+                "{{room_id}}",
+                "nda",
+                "sign"
+              ]
+            },
+            "description": "Marks the NDA for this deal room as signed. No body required."
+          },
+          "response": []
+        },
+        {
+          "name": "Add Document",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/deal-rooms/{{room_id}}/documents",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "deal-rooms",
+                "{{room_id}}",
+                "documents"
+              ]
+            },
+            "description": "Adds a document to the deal room. Saves the returned id as {{doc_id}}.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"deck.pdf\",\n  \"url\": \"https://storage.local/deck.pdf\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    pm.collectionVariables.set(\"doc_id\", pm.response.json().id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Download Document",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/deal-rooms/{{room_id}}/documents/{{doc_id}}/download",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "deal-rooms",
+                "{{room_id}}",
+                "documents",
+                "{{doc_id}}",
+                "download"
+              ]
+            },
+            "description": "Returns the document's download URL and logs an access-log entry."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Access Logs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/deal-rooms/{{room_id}}/access-logs",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "deal-rooms",
+                "{{room_id}}",
+                "access-logs"
+              ]
+            },
+            "description": "Lists access-log events for the deal room."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Messages",
+      "item": [
+        {
+          "name": "Send Message",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/messages",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "messages"
+              ]
+            },
+            "description": "Sends a message between two users.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"to\": \"{{investor_user_id}}\",\n  \"from\": \"{{user_id}}\",\n  \"body\": \"hi\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List Messages",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/messages?thread_with={{investor_user_id}}&deal_room_id={{room_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "messages"
+              ],
+              "query": [
+                {
+                  "key": "thread_with",
+                  "value": "{{investor_user_id}}",
+                  "disabled": true
+                },
+                {
+                  "key": "deal_room_id",
+                  "value": "{{room_id}}",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Optional filters: thread_with, deal_room_id."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        {
+          "name": "List My Notifications",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/notifications",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "notifications"
+              ]
+            },
+            "description": "Lists notifications for the current authenticated user. NOTE: no route in this API currently calls send_notification(), so this stays empty unless a notification row is seeded directly in the database."
+          },
+          "response": []
+        },
+        {
+          "name": "Mark Notification Read",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/notifications/{{notification_id}}/read",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "notifications",
+                "{{notification_id}}",
+                "read"
+              ]
+            },
+            "description": "Marks a notification as read. Will 404 unless a notification with this id exists."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Voice",
+      "item": [
+        {
+          "name": "Voice Navigate (stub)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/voice/navigate",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "voice",
+                "navigate"
+              ]
+            },
+            "description": "Stub endpoint for voice-driven navigation intents.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"intent\": \"go_home\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Voice Pitch Submission (stub)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/voice/pitch-submission",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "voice",
+                "pitch-submission"
+              ]
+            },
+            "description": "Stub endpoint for submitting a pitch via voice transcript.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"transcript\": \"hello\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{admin_access_token}}",
+            "type": "string"
+          }
+        ]
+      },
+      "item": [
+        {
+          "name": "List Pending Verifications",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/verifications/pending",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "verifications",
+                "pending"
+              ]
+            },
+            "description": "Requires the admin access token (Login (Admin) sets {{admin_access_token}})."
+          },
+          "response": []
+        },
+        {
+          "name": "Approve Verification",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/verifications/{{user_id}}/approve",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "verifications",
+                "{{user_id}}",
+                "approve"
+              ]
+            },
+            "description": "Approves a user's verification. No body required."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Audit Logs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/audit-logs",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "audit-logs"
+              ]
+            },
+            "description": "Lists all recorded admin audit-log events."
+          },
+          "response": []
+        },
+        {
+          "name": "Flag Content",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/admin/moderation/{{content_id}}/flag",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "moderation",
+                "{{content_id}}",
+                "flag"
+              ]
+            },
+            "description": "Flags a piece of content for moderation. No body required."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
