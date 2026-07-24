@@ -3,6 +3,7 @@ from flask_jwt_extended import jwt_required
 
 from app.extensions import db
 from app.models.booking import Booking
+from app.services.notification_service import send_notification
 
 bookings_bp = Blueprint("bookings", __name__, url_prefix="/api/v1/bookings")
 
@@ -14,6 +15,9 @@ def create_booking():
     booking = Booking(data=data)
     db.session.add(booking)
     db.session.commit()
+    user_id = data.get("user_id")
+    if user_id:
+        send_notification(int(user_id), f"Booking #{booking.id} requested.")
     return jsonify(booking.to_dict()), 201
 
 
@@ -36,8 +40,12 @@ def update_booking(booking_id: int):
     booking = db.session.get(Booking, booking_id)
     if not booking:
         return jsonify({"error": "Booking not found"}), 404
-    booking.data = {**(booking.data or {}), **(request.get_json(silent=True) or {})}
+    updates = request.get_json(silent=True) or {}
+    booking.data = {**(booking.data or {}), **updates}
     db.session.commit()
+    user_id = booking.data.get("user_id")
+    if user_id and "status" in updates:
+        send_notification(int(user_id), f"Booking #{booking.id} status changed to {updates['status']}.")
     return jsonify(booking.to_dict()), 200
 
 
